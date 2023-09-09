@@ -112,7 +112,7 @@ class Car:
                 return
 
         # Check if the current lane is save
-        (lane_save, car_blocking) = self.is_lane_save(lanes[lane_index])
+        (lane_save, car_blocking) = self.is_lane_save_in_front(lanes[lane_index])
         if lane_save:
             self.maintain_speed(delta_t)
         else:
@@ -128,25 +128,29 @@ class Car:
                 return
 
     def maintain_speed(self, delta_t) -> None:
+        print(f"{self.name} is maintaining speed")
         self.x += delta_t * self.speed
         self.speed = self.calculate_new_speed()
 
     def should_overtake(self, road, lane_index) -> bool:
-        print("------Overtake Check----------------")
+        print(f"{self.name} is checking if it should overtake")
         # Check if it is possible to move to a higher lane
         if lane_index == road.num_of_lanes - 1:
             return False
 
         # Check if the current lane is save, if it is there is no need to overtake
-        (lane_save, car_blocking) = self.is_lane_save(road.lanes[lane_index])
+        (lane_save, car_blocking) = self.is_lane_save_in_front(road.lanes[lane_index])
         if lane_save:
             return False
 
         # Check if the next lane is save, if it is overtake if not do not overtake
-        (next_lane_save, next_car_blocking) = self.is_lane_save(
+        (next_lane_save_front, next_car_blocking_front) = self.is_lane_save_in_front(
             road.lanes[lane_index + 1]
         )
-        if next_lane_save:
+        (next_lane_save_behind, next_car_blocking_behind) = self.is_lane_save_behind(
+            road.lanes[lane_index + 1]
+        )
+        if next_lane_save_front and next_lane_save_behind:
             print(f"{self.name} should overtake {car_blocking.name}")
             return True
 
@@ -154,6 +158,7 @@ class Car:
             return False
 
     def overtake(self, road, lane_index) -> None:
+        print(f"{self.name} is overtaking")
         # First check if the car can move to a higher lane (does not check if the lane is save)
         if lane_index == road.num_of_lanes - 1:
             pass
@@ -161,31 +166,42 @@ class Car:
         road.move_vehicle_to_lane(self, lane_index, lane_index + 1)
 
     def should_move_back(self, road, lane_index) -> bool:
-        print("------Move Back Check----------------")
+        print(f"{self.name} is checking if it should move back")
         # Check if it is possible to move to a previous lane
         if lane_index == 0:
             return False
         # Check if the previous lane is save, if it is move back if not do not move back
-        (previous_lane_save, previous_car_blocking) = self.is_lane_save(
-            road.lanes[lane_index - 1]
-        )
-        if previous_lane_save:
+        (
+            previous_lane_save_front,
+            previous_car_blocking_front,
+        ) = self.is_lane_save_in_front(road.lanes[lane_index - 1])
+        (
+            previous_lane_save_behind,
+            previous_car_blocking_behind,
+        ) = self.is_lane_save_behind(road.lanes[lane_index - 1])
+        if previous_lane_save_front and previous_lane_save_behind:
             print(f"{self.name} should move back")
             return True
         else:
+            previous_car_blocking = (
+                previous_car_blocking_front
+                if previous_car_blocking_front is not None
+                else previous_car_blocking_behind
+            )
             print(
                 f"{self.name} should not move back due to {previous_car_blocking.name}"
             )
             return False
 
     def move_back(self, road, lane_index) -> None:
+        print(f"{self.name} is moving back")
         # First check if the car can move to a previous lane (does not check if the lane is save)
         if lane_index == 0:
             pass
         # Move the car to the previous lane
         road.move_vehicle_to_lane(self, lane_index, lane_index - 1)
 
-    def is_lane_save(self, lane) -> tuple[bool, Self or None]:
+    def is_lane_save_in_front(self, lane) -> tuple[bool, Self or None]:
         # Checks if the lane is save for the car to drive on
         # Distance according to the 2 second rule
         save_distance = 1 * self.speed
@@ -197,6 +213,21 @@ class Car:
                     f"The lane is not save for {self.name} due to the following car: {car.name}"
                 )
                 print(f"Distance: {car.x - self.x:.2f} m")
+                return (False, car)
+        return (True, None)
+
+    def is_lane_save_behind(self, lane) -> tuple[bool, Self or None]:
+        # Checks if the lane is save for the car to drive on
+        # Distance according to the 2 second rule
+        save_distance = 1 * self.speed
+        for car in lane:
+            if car == self:
+                break
+            if car.x > self.x - save_distance and car.x < self.x:
+                print(
+                    f"The lane is not save for {self.name} due to the following car: {car.name}"
+                )
+                print(f"Distance: {self.x - car.x:.2f} m")
                 return (False, car)
         return (True, None)
 
@@ -230,7 +261,7 @@ class Car:
         )
 
 
-def spawn_car(road):
+def spawn_car_on_multiple_lanes(road):
     # If called there is a chance that a car will spawn on the road
     # on a random lane at x=0 m where the first lane has a higher probability of spawning a car than the last lane
     # The probability of spawning a car is lamda 1/10 by a poisson distribution per lane
@@ -254,7 +285,7 @@ def spawn_car(road):
         # Add the car to the road
         road.add_car(car, lane_index=lane_index)
         # check if lane is save
-        (lane_save, car_blocking) = car.is_lane_save(road.lanes[lane_index])
+        (lane_save, car_blocking) = car.is_lane_save_in_front(road.lanes[lane_index])
         if not lane_save:
             road.remove_car(car, lane_index=lane_index)
 
@@ -268,10 +299,15 @@ def spawn_car_on_first_lane(road):
     if np.random.default_rng().poisson(1 / 5):
         # Create a car
         car = Car()
+        # Chance that the car is a truck
+        if np.random.default_rng().poisson(1 / 5):
+            car.length = 10
+            car.width = 3
+            car.speed = car.initial_normal_speed() * 0.5
         # Add the car to the road
         road.add_car(car, lane_index=0)
         # check if lane is save
-        (lane_save, car_blocking) = car.is_lane_save(road.lanes[0])
+        (lane_save, car_blocking) = car.is_lane_save_in_front(road.lanes[0])
         if not lane_save:
             road.remove_car(car, lane_index=0)
 
