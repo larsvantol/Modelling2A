@@ -5,6 +5,7 @@ from matplotlib.patches import Rectangle
 from matplotlib.animation import FuncAnimation
 from tqdm import tqdm
 from colors import random_color
+import time
 
 
 class Road:
@@ -327,11 +328,17 @@ def main() -> None:
     ax.set_ylabel("Lane")
     ax.set_title("Traffic simulation")
 
+    # what can be done to make the animation faster?
+    # https://stackoverflow.com/questions/40126176/fast-live-plotting-in-matplotlib-pyplot
+
     def update(frame_number):
         fig.clear()
         spawn_car_on_first_lane(road1)
         if road1.cars_on_road():
+            t1 = time.perf_counter_ns()
             road1.move_cars(delta_t=delta_t)
+            t2 = time.perf_counter_ns()
+            print(f"Time to move cars: {t2} - {t1} = {(t2 - t1) / 1e6:.2f} ms")
             road1.show_graphical_representation()
             plt.draw()
 
