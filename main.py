@@ -385,7 +385,7 @@ def print_stats(stats):
         f"Most common time: \t{stats['most_common_travel_time']:.2f} s or {stats['most_common_travel_time'] / 60:.2f} min"
     )
     print(
-        f"Amount most common time: \t{stats['amount_of_most_common_travel_time']} / {stats['amount_of_cars']}"
+        f"# of most common time: \t{stats['amount_of_most_common_travel_time']} / {stats['amount_of_cars']} ({stats['amount_of_most_common_travel_time'] / stats['amount_of_cars'] * 100:.2f}%))"
     )
     print(f"Standard deviation: \t{stats['std_dev']:.2f} s")
     print(f"Amount of cars: \t{stats['amount_of_cars']}")
@@ -527,7 +527,7 @@ def animate(road, delta_t):
 def run_simulation(road, delta_t):
     start_time_of_simulation = time.perf_counter_ns()
 
-    for _ in tqdm(range(100000)):
+    for _ in tqdm(range(10000)):
         simulate(road, delta_t)
 
     end_time_of_simulation = time.perf_counter_ns()
