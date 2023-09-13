@@ -255,12 +255,12 @@ class Car:
 
     def initial_normal_speed(self) -> float:
         mu = 100 / 3.6  # m/s
-        sigma = 15 / 3.6  # m/s
+        sigma = 5 / 3.6  # m/s
         return np.random.default_rng().normal(mu, sigma)
 
     def calculate_new_speed(self) -> float:
         mu = self.speed  # m/s
-        sigma = 5 / 3.6  # m/s
+        sigma = 1 / 3.6  # m/s
         new_speed = np.random.default_rng().normal(mu, sigma)
         if new_speed < 0:
             return 0
@@ -325,7 +325,11 @@ def spawn_car_on_first_lane(road):
         if np.random.default_rng().poisson(1 / 5):
             car.length = 10
             car.width = 3
-            car.speed = car.initial_normal_speed() * 0.5
+            car.speed = car.initial_normal_speed() * 0.7
+            car.save_space_time = np.random.default_rng().normal(
+                4, 0.5
+            )  # s (2 second rule)
+
         # Add the car to the road
         road.add_car(car, lane_index=0)
         # check if lane is save
@@ -492,6 +496,7 @@ def animate(road, delta_t):
     ax.set_title("Traffic simulation")
 
     def update(frame_number):
+        print(frame_number)
         fig.clear()
 
         global sim_time  # Declare sim_time as nonlocal to modify it within the function
@@ -516,7 +521,7 @@ def animate(road, delta_t):
         # plt.draw()
 
     # Construct the animation, using the update function as the animation director.
-    anim = FuncAnimation(fig=fig, func=update, frames=400, interval=30)
+    anim = FuncAnimation(fig=fig, func=update, frames=4000, interval=30)
     filepath = os.path.abspath("tmp/animation.html")
     anim.save(filename=filepath, writer="html")
 
@@ -547,7 +552,7 @@ def main() -> None:
     global sim_time  # Declare sim_time as a global variable
     sim_time = 0  # Initialize simulation time
 
-    road1 = Road(length=500, num_of_lanes=3)
+    road1 = Road(length=2500, num_of_lanes=3)
 
     # animate(road1, delta_t)
     run_simulation(road1, delta_t)
