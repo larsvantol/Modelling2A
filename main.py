@@ -10,6 +10,8 @@ from scipy.stats import poisson, norm, expon, lognorm
 from scipy.optimize import curve_fit
 import os
 
+from plots import plot_travel_times
+
 
 class Road:
     def __init__(self, length, num_of_lanes) -> None:
@@ -104,18 +106,25 @@ class Car:
         self.length = 4  # m
         self.width = 2  # m
 
-        self.color = np.random.rand(3)
+        self.maximum_acceleration = 3  # m/s^2
+        self.maximum_deceleration = -5  # m/s^2
+
+        self.apparent_reaction_time = 0.5  # s
+
+        self.x = 0
+
+        self.desired_speed = 100 / 3.6  # m/s
+        self.current_speed = self.initial_normal_speed()
+
+        self.save_space_time = np.random.default_rng().normal(
+            2, 0.5
+        )  # s (2 second rule)
 
         if name == "Unnamed Car":
             self.name, self.color = random_color()
         else:
             self.name = name
-        self.x = 0
-        self.speed = self.initial_normal_speed()
-
-        self.save_space_time = np.random.default_rng().normal(
-            2, 0.5
-        )  # s (2 second rule)
+            _, self.color = random_color()
 
         self.start_time = sim_time
         self.logging = False
@@ -141,18 +150,20 @@ class Car:
             # Check if the car can move to a higher lane
             if self.should_overtake(road, lane_index):
                 self.overtake(road, lane_index)
-                self.speed = self.speed * 1.2  # Increase speed after overtaking
+                self.current_speed = (
+                    self.current_speed * 1.2
+                )  # Increase speed after overtaking
                 self.maintain_speed(delta_t)
                 return
             else:
-                self.speed = car_blocking.speed
+                self.current_speed = car_blocking.current_speed
                 self.maintain_speed(delta_t)
                 return
 
     def maintain_speed(self, delta_t) -> None:
         self.print_log(f"{self.name} is maintaining speed")
-        self.x += delta_t * self.speed
-        self.speed = self.calculate_new_speed()
+        self.x += delta_t * self.current_speed
+        self.current_speed = self.calculate_new_speed()
 
     def should_overtake(self, road, lane_index) -> bool:
         self.print_log(f"{self.name} is checking if it should overtake")
@@ -226,7 +237,7 @@ class Car:
     def is_lane_save_in_front(self, lane) -> tuple[bool, Self or None]:
         # Checks if the lane is save for the car to drive on
         # Distance according to the 2 second rule
-        save_distance = self.save_space_time * self.speed
+        save_distance = self.save_space_time * self.current_speed
         for car in lane:
             if car == self:
                 break
@@ -241,7 +252,7 @@ class Car:
     def is_lane_save_behind(self, lane) -> tuple[bool, Self or None]:
         # Checks if the lane is save for the car to drive on
         # Distance according to the 2 second rule
-        save_distance = self.save_space_time * self.speed
+        save_distance = self.save_space_time * self.current_speed
         for car in lane:
             if car == self:
                 break
@@ -259,7 +270,7 @@ class Car:
         return np.random.default_rng().normal(mu, sigma)
 
     def calculate_new_speed(self) -> float:
-        mu = self.speed  # m/s
+        mu = self.current_speed  # m/s
         sigma = 1 / 3.6  # m/s
         new_speed = np.random.default_rng().normal(mu, sigma)
         if new_speed < 0:
@@ -268,7 +279,7 @@ class Car:
             return new_speed
 
     def __str__(self) -> str:
-        return f"Car(name={self.name}, x={self.x:.2f} m, speed={self.speed:.2f} m/s or {self.speed * 3.6:.2f} km/h)"
+        return f"Car(name={self.name}, x={self.x:.2f} m, speed={self.current_speed:.2f} m/s or {self.current_speed * 3.6:.2f} km/h)"
 
     def graphical_representation(self, y) -> Rectangle:
         x1 = self.x - self.length / 2
@@ -318,14 +329,14 @@ def spawn_car_on_first_lane(road):
     # The probability of spawning a car is lamda 1/10 by a poisson distribution
 
     # First check if a car will spawn on the road by a poisson distribution
-    if np.random.default_rng().poisson(1 / 5):
+    if np.random.default_rng().poisson(1 / 2):
         # Create a car
         car = Car()
         # Chance that the car is a truck
         if np.random.default_rng().poisson(1 / 5):
             car.length = 10
             car.width = 3
-            car.speed = car.initial_normal_speed() * 0.7
+            car.current_speed = car.initial_normal_speed() * 0.7
             car.save_space_time = np.random.default_rng().normal(
                 4, 0.5
             )  # s (2 second rule)
@@ -399,94 +410,6 @@ def print_stats(stats):
     print(f"Time to simulate: \t{stats['real_time']:.2f} s")
 
 
-def plot_travel_times(road, stats):
-    # Plot the data of the simulation
-
-    plt.figure(figsize=(10, 6))
-
-    plt.hist(
-        road.data,
-        bins=stats["bins"],
-        density=True,
-        label="Simulation data",
-        alpha=0.5,
-        rwidth=0.9,
-        color="b",
-    )
-    plt.title("Travel times")
-
-    # Also plot a line for the average travel time
-    plt.axvline(stats["mean_travel_time"], color="k", linewidth=1)
-    plt.text(
-        stats["mean_travel_time"] + 0.1,
-        0.8 * plt.ylim()[1],
-        f"Average travel time: {stats['mean_travel_time']:.2f} s",
-    )
-
-    # Also plot a line for the most common travel time
-    plt.axvline(stats["most_common_travel_time"], color="k", linewidth=1)
-    plt.text(
-        stats["most_common_travel_time"] + 0.1,
-        0.7 * plt.ylim()[1],
-        f"Most common travel time: {stats['most_common_travel_time']:.2f} s",
-    )
-
-    # Also plot a line for the standard deviation
-    plt.axvline(
-        stats["mean_travel_time"] + stats["std_dev"],
-        color="k",
-        linestyle="dashed",
-        linewidth=1,
-    )
-    plt.text(
-        stats["mean_travel_time"] + stats["std_dev"] + 0.1,
-        0.6 * plt.ylim()[1],
-        f"Standard deviation: {stats['std_dev']:.2f} s",
-    )
-    plt.axvline(
-        stats["mean_travel_time"] - stats["std_dev"],
-        color="k",
-        linestyle="dashed",
-        linewidth=1,
-    )
-
-    # Fit some distributions to the data
-    x = np.linspace(0, stats["max_travel_time"], 1000)
-
-    # Fit the normal distribution to the histogram
-    p = norm.pdf(x, loc=stats["mean_travel_time"], scale=stats["std_dev"])
-    plt.plot(x, p, "g", lw=2, label="Fitted Normal Distribution")
-
-    # Fit a poisson distribution to the data
-    p = poisson.pmf(x, stats["mean_travel_time"])
-    plt.plot(x, p, "b", lw=2, label="Fitted Poisson Distribution")
-
-    # Fit a exponential distribution to the data
-    loc, scale = expon.fit(road.data)
-    p = expon.pdf(x, loc, scale)
-    plt.plot(x, p, "r", label="Fitted Exponential")
-
-    # Fit a exponential distribution to the data for the most common travel time
-    filtered_data = list(
-        filter(lambda time: time >= stats["most_common_travel_time"], road.data)
-    )
-    loc, scale = expon.fit(filtered_data)
-    p = expon.pdf(x, loc, scale)
-    plt.plot(x, p, "r", linestyle="dashed", label="Fitted Exponential")
-
-    # Fit a lognormal distribution to the data
-    shape, loc, scale = lognorm.fit(road.data)
-    p = lognorm.pdf(x, shape, loc, scale)
-    plt.plot(x, p, "y", label="Fitted Lognormal")
-
-    plt.xlabel("Travel time (s)")
-    plt.ylabel("Probability density")
-
-    plt.legend()
-
-    plt.show()
-
-
 def animate(road, delta_t):
     fig = plt.figure()
     ax = plt.axes(xlim=(0, road.length), ylim=(0, road.num_of_lanes * road.lane_width))
@@ -521,8 +444,11 @@ def animate(road, delta_t):
         # plt.draw()
 
     # Construct the animation, using the update function as the animation director.
-    anim = FuncAnimation(fig=fig, func=update, frames=4000, interval=30)
-    filepath = os.path.abspath("tmp/animation.html")
+    anim = FuncAnimation(fig=fig, func=update, frames=1500, interval=30)
+    datetime = time.strftime("%d%m-%H%M%S")
+    filepath = os.path.abspath(
+        f"tmp/{datetime}_{road.length}m_{road.num_of_lanes}_lanes/animation.html"
+    )
     anim.save(filename=filepath, writer="html")
 
     # open the file
@@ -532,7 +458,7 @@ def animate(road, delta_t):
 def run_simulation(road, delta_t):
     start_time_of_simulation = time.perf_counter_ns()
 
-    for _ in tqdm(range(10000)):
+    for _ in tqdm(range(100000)):
         simulate(road, delta_t)
 
     end_time_of_simulation = time.perf_counter_ns()
@@ -552,7 +478,7 @@ def main() -> None:
     global sim_time  # Declare sim_time as a global variable
     sim_time = 0  # Initialize simulation time
 
-    road1 = Road(length=2500, num_of_lanes=3)
+    road1 = Road(length=250, num_of_lanes=3)
 
     # animate(road1, delta_t)
     run_simulation(road1, delta_t)
