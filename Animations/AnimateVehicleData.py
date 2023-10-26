@@ -6,18 +6,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import time
+from Analysis.OpenSimulation import open_simulation
+from tqdm import tqdm
+from functools import partial
 
-print("Opening file...")
+##################################
 
-folder = "tmp/simplefollowing_model/"
-filename = "simplefollowing_model_1_vehicle_data.csv"
-# folder = "tmp/gipps_model/"
-# filename = "gipps_model_2_vehicle_data.csv"
-path = os.path.join(folder, filename)
+print("Opening simulation...")
 
-# Check if path exists if not raise an error
-if not os.path.exists(path):
-    raise FileNotFoundError(f"File {path} does not exist.")
+path, project_folder, SIMULATION_SETTINGS = open_simulation()
+
+##################################
 
 print("Reading data...")
 
@@ -28,19 +27,30 @@ data = pd.read_csv(path, header=0)
 if len(data) == 0:
     raise ValueError(f"Data {data} is empty.")
 
-#################################3
+##################################
 
 print("Creating first things...")
 
 # Create a figure and axis
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(figsize=(50, 10))
 
 print("Setting the limits...")
 
 # Set the limits for the x and y axes
 max_position = max(data["position"]) + 10
 ax.set_xlim(0, max_position)
-ax.set_ylim(0, 1)
+ax.set_ylim(0, SIMULATION_SETTINGS["road"]["lanes"])
+
+# Draw the road
+for lane_index in range(SIMULATION_SETTINGS["road"]["lanes"] + 1):
+    ax.hlines(
+        y=lane_index,
+        xmin=0,
+        xmax=max_position,
+        color="black",
+        linestyle="dashed",
+        linewidth=1,
+    )
 
 print("Creating the color map...")
 
@@ -54,27 +64,39 @@ color_dict = {
 # Create a dictionary to keep track of rectangles for each vehicle
 rectangles = {}
 
-car_length = 3  # m
+CAR_LENGTH = 1.5  # m
 
 
 # Function to update the animation
-def update(frame):
-    print(frame)
+def update(frame, pbar):
+    pbar.update(1)
+    # print(frame)
     ax.clear()  # Clear the previous frame
     ax.set_xlim(0, max_position)
-    ax.set_ylim(0, 1)
+    ax.set_ylim(0, SIMULATION_SETTINGS["road"]["lanes"])
+
+    # Draw the road
+    for lane_index in range(SIMULATION_SETTINGS["road"]["lanes"] + 1):
+        ax.hlines(
+            y=lane_index,
+            xmin=0,
+            xmax=max_position,
+            color="black",
+            linestyle="dashed",
+            linewidth=1,
+        )
 
     frame_vehicle_data = data[data["time"] == frame]
     for _, vehicle_data in frame_vehicle_data.iterrows():
         vehicle_id = vehicle_data["vehicle_id"]
 
         x = vehicle_data["position"]
-        y = 0.5  # Y-coordinate for the center of the box
+        y = vehicle_data["lane_index"] + 0.5  # + 0.5 to center the vehicle in the lane
 
         if vehicle_id not in rectangles:
             rect = plt.Rectangle(
-                (x - car_length / 2, y - 0.25),
-                car_length,
+                (x - CAR_LENGTH / 2, y - 0.25),
+                CAR_LENGTH,
                 0.5,
                 color=color_dict[vehicle_id],
                 alpha=0.7,
@@ -82,7 +104,7 @@ def update(frame):
             ax.add_patch(rect)
             rectangles[vehicle_id] = rect
         else:
-            rectangles[vehicle_id].set_x(x - car_length / 2)
+            rectangles[vehicle_id].set_x(x - CAR_LENGTH / 2)
             rectangles[vehicle_id].set_y(y - 0.25)
             ax.add_patch(rectangles[vehicle_id])
 
@@ -93,28 +115,22 @@ def update(frame):
 print("Creating animation...")
 
 # Only use every 10th frame to speed up the animation rendering
-frames = np.unique(data["time"])[::20]
+# frames = np.unique(data["time"])[::10]
+frames = np.unique(data["time"])
 print(len(frames))
 # frames = frames[frames <= 100]
 
 # Create an animation
-ani = animation.FuncAnimation(fig, update, frames=frames, repeat=False)
+with tqdm(total=len(frames)) as pbar:
+    ani = animation.FuncAnimation(
+        fig, partial(update, pbar=pbar), frames=frames, repeat=False
+    )
+    # Remove the file extension and add the datetime and .html
+    filename = "animation_" + time.strftime("%d%m-%H%M%S") + ".html"
+    filepath = os.path.join(project_folder, filename)
 
-# Display the animation
-# plt.gca().axes.get_yaxis().set_visible(False)  # Hide the y-axis
-# plt.show()
-
-##########################################
-
-# # Display the animation
-# plt.show()
-
-# Remove the file extension and add the datetime and .html
-filename = filename.split(".")[0] + "_" + time.strftime("%d%m-%H%M%S") + ".html"
-filepath = os.path.join(folder, filename)
-
-# Save the animation as an html file
-ani.save(filename=filepath, writer="html")
+    # Save the animation as an html file
+    ani.save(filename=filepath, writer="html")
 
 # open the file
 os.startfile(os.path.abspath(filepath))

@@ -91,7 +91,7 @@ if __name__ == "__main__":
             if first_vehicle.position >= road_length:
                 # print("first:", first_vehicle.position)
                 # Record the total travel time
-                data_collector.car_deleted(first_vehicle, simulation_time)
+                data_collector.vehicle_deleted(first_vehicle, simulation_time)
                 # Remove the vehicle from the road
                 road.remove(first_vehicle)
 
