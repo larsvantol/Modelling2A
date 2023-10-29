@@ -1,3 +1,4 @@
+"""Main file for the program."""
 from GUI.main_window import MainApplication
 
 if __name__ == "__main__":

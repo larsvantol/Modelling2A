@@ -1,19 +1,26 @@
-from tkinter.simpledialog import askinteger
+# type: ignore
+"""
+A script to analyse the vehicle data of a simulation.
+"""
 from tkinter.filedialog import asksaveasfilename
-import pandas as pd
-from Analysis.OpenSimulation import open_simulation
+from tkinter.simpledialog import askinteger
+
 import matplotlib.pyplot as plt
+import pandas as pd
 import tqdm
+
+from Analysis.OpenSimulation import open_simulation
 
 
 def analyse_vehicle_data():
+    """
+    Analyse the vehicle data of a simulation.
+    """
     ##################################
 
     print("Opening simulation...")
 
-    path, project_folder, SIMULATION_SETTINGS = open_simulation(
-        preference_file="vehicle_data.csv"
-    )
+    path, project_folder, simulation_settings = open_simulation(preference_file="vehicle_data.csv")
 
     ##################################
 
@@ -44,7 +51,7 @@ def analyse_vehicle_data():
 
     #################################
 
-    delta_t = SIMULATION_SETTINGS["simulation"]["time_step"]
+    delta_t = simulation_settings["simulation"]["time_step"]
 
     print("Calculating acceleration...")
 
@@ -102,10 +109,10 @@ def analyse_vehicle_data():
     ax4.set_xlabel("Time")
 
     # Show the legend
-    ax1.legend(loc="upper right")
-    ax2.legend(loc="upper right")
-    ax3.legend(loc="upper right")
-    ax4.legend(loc="upper right")
+    ax1.legend(loc="upper right", fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax2.legend(loc="upper right", fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax3.legend(loc="upper right", fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax4.legend(loc="upper right", fancybox=True, framealpha=1, shadow=True, borderpad=1)
 
     # Tkinter to ask for a file name
     file = asksaveasfilename(

@@ -1,25 +1,31 @@
-import pygame
-import pandas as pd
-import numpy as np
+# type: ignore
+"""File that contains the function to show an animation of the simulation using pygame."""
 import random
+
+import numpy as np
+import numpy.typing as npt
+import pandas as pd
+import pygame
+
 from Analysis.OpenSimulation import open_simulation
 
 
 def show_animation():
+    """
+    This function shows an animation of the simulation using pygame.
+    """
     ##################################
 
     print("Opening simulation...")
 
-    path, project_folder, SIMULATION_SETTINGS = open_simulation(
-        preference_file="vehicle_data.csv"
-    )
+    path, _, simulation_settings = open_simulation(preference_file="vehicle_data.csv")
 
     ##################################
 
     print("Reading data...")
 
     # Read the data from the file, ignore the first row which is a header
-    data = pd.read_csv(path, header=0)
+    data: pd.DataFrame = pd.read_csv(path, header=0)
 
     # Check if data is empty if so raise an error
     if len(data) == 0:
@@ -46,34 +52,33 @@ def show_animation():
     road_height = screen_height - y_top_offset - y_bottom_offset
 
     # Calculate multiplier to scale the road to the screen
-    x_multiplier = road_width / SIMULATION_SETTINGS["road"]["length"]
-    y_multiplier = road_height / SIMULATION_SETTINGS["road"]["lanes"]
+    x_multiplier: float = road_width / float(simulation_settings["road"]["length"])
+    y_multiplier: float = road_height / int(simulation_settings["road"]["lanes"])
 
     # Define colors
     background_color = (255, 255, 255)
     road_color = (128, 128, 128)
-    vehicle_color = (0, 0, 0)
     black_color = (0, 0, 0)
 
     # Get time step
-    time_step = SIMULATION_SETTINGS["simulation"]["time_step"]
+    time_step = simulation_settings["simulation"]["time_step"]
 
-    CAR_LENGTH = 1.5 * x_multiplier  # m * multiplier
+    car_length = 1.5 * x_multiplier  # m * multiplier
 
-    vehicles_rectangles = {}
-    vehicles_colors = {}
+    vehicles_rectangles: dict[int, pygame.Rect] = {}
+    vehicles_colors: dict[int, pygame.Color] = {}
 
-    def get_random_color():
-        return pygame.Color(
-            "#" + "".join([random.choice("0123456789ABCDEF") for j in range(6)])
-        )
+    def get_random_color() -> pygame.Color:
+        return pygame.Color("#" + "".join([random.choice("0123456789ABCDEF") for _ in range(6)]))
 
-    def map_lane_index(lane_index):
-        return SIMULATION_SETTINGS["road"]["lanes"] - lane_index - 1
+    def map_lane_index(lane_index: int) -> int:
+        """This function maps the lane index to the y position on the screen."""
 
-    def draw_lanes():
+        return simulation_settings["road"]["lanes"] - lane_index - 1
+
+    def draw_lanes() -> None:
         screen.fill(background_color)
-        for lane_index in range(SIMULATION_SETTINGS["road"]["lanes"]):
+        for lane_index in range(simulation_settings["road"]["lanes"]):
             y_lane = map_lane_index(lane_index) * y_multiplier + y_top_offset
 
             pygame.draw.rect(
@@ -95,11 +100,11 @@ def show_animation():
                 1,
             )
 
-    def draw_axis():
+    def draw_axis() -> None:
         # This function draws an axis underneath the road with the distance in meters
         tick_size = 100
-        ticks = np.arange(
-            0, SIMULATION_SETTINGS["road"]["length"] + tick_size, tick_size
+        ticks: npt.NDArray[np.float_] = np.arange(
+            0, float(simulation_settings["road"]["length"]) + tick_size, tick_size
         )
         for tick in ticks:
             tick_position = (
@@ -113,23 +118,21 @@ def show_animation():
                 (tick_position[0], tick_position[1] + 5),
                 1,
             )
-            text = pygame.font.SysFont("Arial", 12).render(
-                f"{tick:.0f}", True, black_color
-            )
+            text = pygame.font.SysFont("Arial", 12).render(f"{tick:.0f}", True, black_color)
             text_rect = text.get_rect(center=(tick_position[0], tick_position[1] + 15))
             screen.blit(text, text_rect.move(0, 5))
 
-    def draw_title():
+    def draw_title() -> None:
         # This function draws the title of the animation
         text = pygame.font.SysFont("Arial", 20).render(
-            f"Simulation of {SIMULATION_SETTINGS['road']['lanes']} lanes for {SIMULATION_SETTINGS['simulation']['duration'] / 60:.0f} minutes with {SIMULATION_SETTINGS['spawning']['cars_per_second']:.1f} cars per second.",
+            f"Simulation of {simulation_settings['road']['lanes']} lanes for {simulation_settings['simulation']['duration'] / 60:.0f} minutes with {simulation_settings['spawning']['cars_per_second']:.1f} cars per second.",
             True,
             black_color,
         )
         text_rect = text.get_rect(center=(screen_width / 2, 20))
         screen.blit(text, text_rect)
 
-    def draw_time(time):
+    def draw_time(time: float) -> None:
         # This function draws the time in the top right corner
         minutes = int(time / 60)
         seconds = time % 60
@@ -140,32 +143,26 @@ def show_animation():
         text_rect = text.get_rect(center=(screen_width / 2, 40))
         screen.blit(text, text_rect)
 
-    def draw_information(paused, reversed, speed):
+    def draw_information(paused: bool, reverse: bool, speed: float) -> None:
         # This function draws the information in the upper left corner underneath each other
-        text = pygame.font.SysFont("Arial", 15).render(
-            f"Paused: {paused}", True, black_color
-        )
+        text = pygame.font.SysFont("Arial", 15).render(f"Paused: {paused}", True, black_color)
         screen.blit(text, (x_left_offset, 5))
 
-        text = pygame.font.SysFont("Arial", 15).render(
-            f"Reversed: {reversed}", True, black_color
-        )
+        text = pygame.font.SysFont("Arial", 15).render(f"Reversed: {reverse}", True, black_color)
         screen.blit(text, (x_left_offset, 25))
 
-        text = pygame.font.SysFont("Arial", 15).render(
-            f"Speed: {speed:.4f}x", True, black_color
-        )
+        text = pygame.font.SysFont("Arial", 15).render(f"Speed: {speed:.4f}x", True, black_color)
         screen.blit(text, (x_left_offset, 45))
 
-    def draw_framenum(frame_num, total_frames):
+    def draw_framenum(frame_num: int, total_frames: int) -> None:
         # This function draws the frame number in the top right corner
         text = pygame.font.SysFont("Arial", 15).render(
             f"Frame: {frame_num} / {total_frames}", True, black_color
         )
         screen.blit(text, (screen_width - x_right_offset - 150, 5))
 
-    def update(frame):
-        frame_vehicle_data = data[data["time"] == frame]
+    def update(frame: int) -> None:
+        frame_vehicle_data: pd.DataFrame = data[data["time"] == frame]
 
         # Delete vehicles that are not in the frame
         for vehicle_id in list(vehicles_rectangles.keys()):
@@ -174,12 +171,10 @@ def show_animation():
 
         # Draw vehicles
         for _, vehicle_data in frame_vehicle_data.iterrows():
-            vehicle_id = vehicle_data["vehicle_id"]
+            vehicle_id: int = vehicle_data["vehicle_id"]
 
-            x_left = (
-                vehicle_data["position"] - CAR_LENGTH
-            ) * x_multiplier + x_left_offset
-            y_top = (
+            x_left: float = (vehicle_data["position"] - car_length) * x_multiplier + x_left_offset
+            y_top: float = (
                 map_lane_index(vehicle_data["lane_index"]) + 0.25
             ) * y_multiplier + y_top_offset
 
@@ -187,7 +182,7 @@ def show_animation():
                 vehicles_rectangles[vehicle_id] = pygame.Rect(
                     x_left,
                     y_top,
-                    max(1, CAR_LENGTH * x_multiplier),
+                    max(1, car_length * x_multiplier),
                     0.5 * y_multiplier,
                 )
                 if vehicle_id not in vehicles_colors:
@@ -200,11 +195,11 @@ def show_animation():
 
             pygame.draw.rect(screen, color, vehicles_rectangles[vehicle_id], 2)
 
-    frames = np.unique(data["time"])
+    frames: npt.NDArray[np.float_] = np.unique(data["time"])
 
     running = True
     paused = False
-    reversed = False
+    reverse = False
     speed = 1
 
     frame_num = 0
@@ -219,14 +214,14 @@ def show_animation():
                 if event.key == pygame.K_ESCAPE:
                     frame_num = 0
                     paused = False
-                    reversed = False
+                    reverse = False
                     speed = 1
                 if event.key == pygame.K_SPACE:
                     paused = not paused
                 if event.key == pygame.K_r or event.key == pygame.K_LEFT:
-                    reversed = True
+                    reverse = True
                 if event.key == pygame.K_f or event.key == pygame.K_RIGHT:
-                    reversed = False
+                    reverse = False
                 if event.key == pygame.K_DOWN:
                     speed /= 1.1
                     if speed < 0.0001:
@@ -239,7 +234,8 @@ def show_animation():
                     # Skip 10% frames back
                     decrease = int(len(frames) * 0.1)
                     if frame_num - decrease < 0:
-                        # If the frame number is smaller than 0 loop back to the end minus the decrease that is left
+                        # If the frame number is smaller than 0 loop back
+                        # to the end minus the decrease that is left
                         frame_num = len(frames) - (decrease - frame_num)
                     else:
                         frame_num -= decrease
@@ -247,45 +243,50 @@ def show_animation():
                     # Skip 10% frames forward
                     increase = int(len(frames) * 0.1)
                     if frame_num + increase >= len(frames):
-                        # If the frame number is larger than the number of frames loop back to the beginning plus the increase that is left
+                        # If the frame number is larger than the number of frames
+                        # loop back to the beginning plus the increase that is left
                         frame_num = increase - (len(frames) - frame_num)
                     else:
                         frame_num += increase
                 if event.key == pygame.K_COMMA:
                     # Skip 10 frames back
                     if frame_num - 10 < 0:
-                        # If the frame number is smaller than 0 loop back to the end minus the decrease that is left
+                        # If the frame number is smaller than 0 loop back
+                        # to the end minus the decrease that is left
                         frame_num = len(frames) - (10 - frame_num)
                     else:
                         frame_num -= 10
                 if event.key == pygame.K_PERIOD:
                     # Skip 10 frames forward
                     if frame_num + 10 >= len(frames):
-                        # If the frame number is larger than the number of frames loop back to the beginning plus the increase that is left
+                        # If the frame number is larger than the number of frames
+                        # loop back to the beginning plus the increase that is left
                         frame_num = 10 - (len(frames) - frame_num)
                     else:
                         frame_num += 10
                 if event.key == pygame.K_PAGEUP:
                     if frame_num + 1 >= len(frames):
-                        # If the frame number is larger than the number of frames loop back to the beginning plus the increase that is left
+                        # If the frame number is larger than the number of frames
+                        # loop back to the beginning plus the increase that is left
                         frame_num = 1 - (len(frames) - frame_num)
                     else:
                         frame_num += 1
                 if event.key == pygame.K_PAGEDOWN:
                     if frame_num - 1 < 0:
-                        # If the frame number is smaller than 0 loop back to the end minus the decrease that is left
+                        # If the frame number is smaller than 0 loop back
+                        # to the end minus the decrease that is left
                         frame_num = len(frames) - (1 - frame_num)
                     else:
                         frame_num -= 1
                 if event.key == pygame.K_r:
                     paused = False
-                    reversed = False
+                    reverse = False
                     speed = 1
 
         draw_lanes()
         draw_title()
         draw_time(frames[frame_num])
-        draw_information(paused, reversed, speed)
+        draw_information(paused, reverse, speed)
         draw_framenum(frame_num, len(frames))
         draw_axis()
         # Update and draw
@@ -294,7 +295,7 @@ def show_animation():
         pygame.display.flip()
 
         if not paused:
-            if reversed:
+            if reverse:
                 frame_num -= 1
             else:
                 frame_num += 1

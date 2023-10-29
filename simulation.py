@@ -1,17 +1,19 @@
-from tqdm import tqdm
-import numpy as np
 import time
 from decimal import Decimal
 
-# import the Vehicle class and the behavior models
-from Vehicles.Vehicle import Car
+import numpy as np
+from tqdm import tqdm
+
+from Analysis.DataCollector import DataCollector
+from Behaviors.Gipps import GippsBehavior
 from Behaviors.SimpleBehavior import (
     SimpleBehavior,
     SimpleFollowingBehavior,
     SimpleFollowingExtendedBehavior,
 )
-from Behaviors.Gipps import GippsBehavior
-from Analysis.DataCollector import DataCollector
+
+# import the Vehicle class and the behavior models
+from Vehicles.Vehicle import Car
 
 
 def create_car():
@@ -68,7 +70,7 @@ if __name__ == "__main__":
     spawn_car(road, data_collector, simulation_time)
 
     for simulation_step in tqdm(range(int(simulation_duration / time_step))):
-        data_collector.add_new_simulation_time(simulation_time)
+        data_collector.set_new_simulation_time(simulation_time)
 
         # Spawn new cars using a Poisson process
         cars_per_second = 0.1

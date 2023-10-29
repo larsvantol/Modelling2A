@@ -1,9 +1,14 @@
+"""A function to open a simulation folder and return the path to the file and the folder and the simulation settings"""
+import json
 import os
 from tkinter.filedialog import askdirectory, askopenfilename
-import json
+from typing import Any
 
 
-def open_simulation(preference_file=None):
+def open_simulation(preference_file: str | None = None) -> tuple[str, str, dict[str, Any]]:
+    """Open a simulation file and return the path to the file
+    and the folder and the simulation settings"""
+
     print("Selecting file...")
 
     # Show file open dialog
@@ -15,7 +20,8 @@ def open_simulation(preference_file=None):
     simulation_settings_file = os.path.join(folder, "simulation_settings.json")
     if not os.path.exists(simulation_settings_file):
         raise FileNotFoundError(f"File {simulation_settings_file} does not exist.")
-    simulation_settings = json.load(open(simulation_settings_file, "r"))
+    with open(simulation_settings_file, "r", encoding="utf-8") as file:
+        simulation_settings = json.load(file)
 
     if preference_file:
         # Check if preference file exists
@@ -40,6 +46,6 @@ def open_simulation(preference_file=None):
 
 
 if __name__ == "__main__":
-    path, simulation_settings = open_simulation()
-    print(path)
-    print(simulation_settings)
+    path_, folder_, simulation_settings_ = open_simulation()
+    print(path_)
+    print(simulation_settings_)

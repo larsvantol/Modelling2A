@@ -1,25 +1,22 @@
-from tqdm import tqdm
-import numpy as np
 import time
-from decimal import Decimal
 from collections.abc import Callable
+from decimal import Decimal
+
+import numpy as np
+from tqdm import tqdm
+
+from Analysis.DataCollector import DataCollector
+from Behaviors.IDM import IDMBehavior
+from Road.Lane import Lane
+from Road.Road import Road
 
 # import the Vehicle class and the behavior models
 from Vehicles.Vehicle import Vehicle
-from Behaviors.SimpleBehavior import (
-    SimpleBehavior,
-    SimpleFollowingBehavior,
-    SimpleFollowingExtendedBehavior,
-)
-from Behaviors.Gipps import GippsBehavior
-from Analysis.DataCollector import DataCollector
-from Road.Road import Road
-from Road.Lane import Lane
 
 simulation = {
     "name": {
-        "id": "simple_following_extended_model_mul_lane",
-        "description": "A simulation with the Simple Following Extended model",
+        "id": "idm_mul_lane",
+        "description": "A simulation with the IDM",
     },
     "road": {
         "length": 500,
@@ -48,9 +45,13 @@ def create_vehicle_spawner() -> Callable[[Road, DataCollector, float], None]:
 
         return Vehicle(
             position=0,
-            behavior_model=SimpleFollowingExtendedBehavior(
+            behavior_model=IDMBehavior(
                 desired_velocity=desired_velocity,  # m/s
-                save_time=2,  # s
+                time_headway=1.5,  # s
+                max_acceleration=1.5,  # m/s^2
+                comfortable_braking_deceleration=1.5,  # m/s^2
+                minimum_spacing=2,  # m
+                acceleration_exponent=4,  # -
             ),
         )
 
@@ -60,15 +61,11 @@ def create_vehicle_spawner() -> Callable[[Road, DataCollector, float], None]:
         "cars_per_second": CARS_PER_SECOND,
     }
 
-    def spawn_vehicles(
-        road: Road, data_collector: DataCollector, simulation_time: float
-    ) -> None:
+    def spawn_vehicles(road: Road, data_collector: DataCollector, simulation_time: float) -> None:
         # Spawn new cars using a Poisson process
 
         for _ in range(
-            np.random.default_rng().poisson(
-                CARS_PER_SECOND * simulation["simulation"]["time_step"]
-            )
+            np.random.default_rng().poisson(CARS_PER_SECOND * simulation["simulation"]["time_step"])
         ):
             vehicle = create_vehicle()
             road.add_vehicle(
@@ -98,7 +95,7 @@ def simulate():
     with DataCollector(simulation["name"]["id"]) as data_collector:
         for simulation_step in tqdm(range(steps)):
             simulation_time = time_step * simulation_step
-            data_collector.add_new_simulation_time(simulation_time)
+            data_collector.set_new_simulation_time(simulation_time)
 
             # Spawn new vehicles
             vehicle_spawner(road, data_collector, simulation_time)
@@ -114,9 +111,7 @@ def simulate():
 
             for lane_index, lane in road.lanes.items():
                 # Remove vehicles that have left the road
-                while (len(lane.vehicles)) > 0 and (
-                    lane.vehicles[0].position > road.length
-                ):
+                while (len(lane.vehicles)) > 0 and (lane.vehicles[0].position > road.length):
                     data_collector.vehicle_deleted(lane.vehicles[0], simulation_time)
                     road.delete_vehicle(lane.vehicles[0])
 

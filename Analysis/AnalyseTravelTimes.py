@@ -1,14 +1,22 @@
+# type: ignore
+"""
+A script to analyse the travel times of a simulation.
+"""
+from tkinter.filedialog import asksaveasfilename
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from matplotlib.ticker import MultipleLocator
 from scipy.stats import norm
-from tkinter.filedialog import asksaveasfilename
+
 from Analysis.OpenSimulation import open_simulation
 
 
 def plot_travel_times_histogram(data, stats, project_folder):
-    # Plot the data of the simulation
+    """
+    Plot the travel times of a simulation.
+    """
 
     plt.figure(figsize=(10, 6))
 
@@ -81,17 +89,12 @@ def plot_travel_times_histogram(data, stats, project_folder):
     # Set the limits of the plot
     grid_x_size = 5
     data_range = stats["max_travel_time"] - stats["min_travel_time"]
-    min_x = (
-        divmod(stats["min_travel_time"] - data_range * 0.1, grid_x_size)[0]
-        * grid_x_size
-    )
-    max_x = (
-        divmod(stats["max_travel_time"] + data_range * 0.1, grid_x_size)[0] + 1
-    ) * grid_x_size
+    min_x = divmod(stats["min_travel_time"] - data_range * 0.1, grid_x_size)[0] * grid_x_size
+    max_x = (divmod(stats["max_travel_time"] + data_range * 0.1, grid_x_size)[0] + 1) * grid_x_size
     plt.gca().set_xlim([min_x, max_x])
     plt.gca().set_ylim([0, plt.gca().get_ylim()[1] * 1.1])
 
-    plt.legend()
+    plt.legend(fancybox=True, framealpha=1, shadow=True, borderpad=1)
 
     # Configure the grid
     plt.grid(which="both", axis="both")
@@ -119,7 +122,7 @@ def plot_travel_times_histogram(data, stats, project_folder):
         filetypes=[("PNG", "*.png")],
         defaultextension=".png",
         initialdir=project_folder,
-        initialfile=f"travel_times.png",
+        initialfile="travel_times.png",
     )
     plt.savefig(
         file,
@@ -141,6 +144,9 @@ def plot_travel_times_histogram(data, stats, project_folder):
 
 
 def get_stats(data):
+    """
+    Get the stats of the data.
+    """
     stats = dict()
     stats["min_travel_time"] = np.min(data)
     stats["max_travel_time"] = np.max(data)
@@ -165,8 +171,10 @@ def get_stats(data):
     return stats
 
 
-def print_stats(stats):
-    # Print stats using the stats dictionary make sure they are aligned
+def print_stats(stats) -> None:
+    """
+    Print stats using the stats dictionary make sure they are aligned
+    """
     print(
         f"Minimum travel time: \t{stats['min_travel_time']:.2f} s or {stats['min_travel_time'] / 60:.2f} min"
     )
@@ -186,14 +194,15 @@ def print_stats(stats):
     print(f"Amount of cars: \t{stats['amount_of_cars']}")
 
 
-def analyse_travel_times():
+def analyse_travel_times() -> None:
+    """
+    Analyse the travel times of a simulation.
+    """
     ##################################
 
     print("Opening simulation...")
 
-    path, project_folder, SIMULATION_SETTINGS = open_simulation(
-        preference_file="travel_times.csv"
-    )
+    path, project_folder, _ = open_simulation(preference_file="travel_times.csv")
 
     ##################################
 
