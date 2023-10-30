@@ -1,7 +1,7 @@
 """Implementation of the Vehicle class."""
 from __future__ import annotations
 
-from Behaviors.Behavior import Behavior
+from Behaviors.BehaviorBase import Behavior
 from Road.Road import Road
 
 

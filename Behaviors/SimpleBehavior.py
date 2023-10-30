@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from Behaviors.Behavior import Behavior
+from Behaviors.BehaviorBase import Behavior
 from Behaviors.LaneChanging import (
     calculate_save_distance_n_seconds_rule,
     is_outside_n_seconds_rule,
@@ -17,6 +17,14 @@ from Vehicles.Vehicle import Vehicle
 
 class SimpleBehavior(Behavior):
     """Implementation of the simple behavior model."""
+
+    @staticmethod
+    def standard_parameters() -> list[tuple[str, str, float, str]]:
+        """Return the standard parameters for the Gipps behavior model."""
+
+        return [
+            ("Update Velocity Deviation", "update_velocity_deviation", (1 / 3.6), "m/s^2"),
+        ]
 
     def __init__(
         self,
@@ -41,6 +49,15 @@ class SimpleBehavior(Behavior):
 
 class SimpleFollowingBehavior(SimpleBehavior):
     """Implementation of the simple behavior model."""
+
+    @staticmethod
+    def standard_parameters() -> list[tuple[str, str, float, str]]:
+        """Return the standard parameters for the Gipps behavior model."""
+
+        return [
+            ("Update Velocity Deviation", "update_velocity_deviation", round(1 / 3.6, 2), "m/s^2"),
+            ("Save Time", "save_time", 2, "s"),
+        ]
 
     def __init__(
         self,
@@ -85,6 +102,15 @@ class SimpleFollowingBehavior(SimpleBehavior):
 
 class SimpleFollowingExtendedBehavior(SimpleBehavior):
     """Implementation of an extension of the simple behavior model."""
+
+    @staticmethod
+    def standard_parameters() -> list[tuple[str, str, float, str]]:
+        """Return the standard parameters for the Gipps behavior model."""
+
+        return [
+            ("Update Velocity Deviation", "update_velocity_deviation", round(1 / 3.6, 2), "m/s^2"),
+            ("Save Time", "save_time", 2, "s"),
+        ]
 
     def __init__(
         self,

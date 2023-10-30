@@ -3,14 +3,15 @@ This file contains the main window of the GUI.
 """
 import traceback
 from functools import partial
-from tkinter import Button, LabelFrame, Tk, messagebox
+from tkinter import Tk, messagebox
+from tkinter.ttk import Button, LabelFrame
 
 from Analysis.AnalyseRoadRush import analyse_road_rush
 from Analysis.AnalyseTravelTimes import analyse_travel_times
 from Analysis.AnalyseVehicleData import analyse_vehicle_data
 from Animations.AnimateVehiclePyGame import show_animation
 from GUI.simulation_settings import show_simulation_settings
-from simulation_simplefollowingext import simulate
+from simulation import simulate
 
 
 class MainApplication:
@@ -44,8 +45,6 @@ class MainApplication:
             simulation_labelframe,
             text="Run Simulation",
             command=self.button_press_map["run_simulation"],
-            padx=10,
-            pady=10,
         )
         simulation_button.pack(padx=10, pady=10)
 
@@ -53,8 +52,6 @@ class MainApplication:
             simulation_labelframe,
             text="Show Simulation",
             command=self.button_press_map["show_animation"],
-            padx=10,
-            pady=10,
         )
         animation_button.pack(padx=10, pady=10)
 
@@ -62,8 +59,6 @@ class MainApplication:
             simulation_labelframe,
             text="Show simulation Settings",
             command=self.button_press_map["show_simulation_settings"],
-            padx=10,
-            pady=10,
         )
         project_settings_button.pack(padx=10, pady=10)
 
@@ -74,8 +69,6 @@ class MainApplication:
             analysis_labelframe,
             text="Analyse Travel Times",
             command=self.button_press_map["analyse_travel_times"],
-            padx=10,
-            pady=10,
         )
         travel_times_button.pack(padx=10, pady=10)
 
@@ -83,8 +76,6 @@ class MainApplication:
             analysis_labelframe,
             text="Analyse Vehicle Data",
             command=self.button_press_map["analyse_vehicle_data"],
-            padx=10,
-            pady=10,
         )
         vehicle_data_button.pack(padx=10, pady=10)
 
@@ -92,8 +83,6 @@ class MainApplication:
             analysis_labelframe,
             text="Analyse Road Rush",
             command=self.button_press_map["analyse_road_rush"],
-            padx=10,
-            pady=10,
         )
         road_rush_button.pack(padx=10, pady=10)
 

@@ -6,7 +6,7 @@ from math import sqrt
 
 import numpy as np
 
-from Behaviors.Behavior import Behavior
+from Behaviors.BehaviorBase import Behavior
 from Behaviors.LaneChanging import (
     calculate_save_distance_n_seconds_rule,
     is_outside_n_seconds_rule,
@@ -20,6 +20,18 @@ from Vehicles.Vehicle import Vehicle
 
 class IDMBehavior(Behavior):
     """Implementation of the IDM behavior model."""
+
+    @staticmethod
+    def standard_parameters() -> list[tuple[str, str, float, str]]:
+        """Return the standard parameters for the IDM behavior model."""
+
+        return [
+            ("Time Headway", "time_headway", 1.5, "s"),
+            ("Max Acceleration", "max_acceleration", 2, "m/s^2"),
+            ("Comfortable Braking Deceleration", "comfortable_braking_deceleration", 3, "m/s^2"),
+            ("Minimum Spacing", "minimum_spacing", 2, "m"),
+            ("Acceleration Exponent", "acceleration_exponent", 4, ""),
+        ]
 
     def __init__(
         self,

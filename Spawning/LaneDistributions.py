@@ -2,7 +2,7 @@
 to determine how many cars should be spawned in each lane."""
 from __future__ import annotations
 
-from typing import Callable
+from typing import Callable, Type
 
 
 class LaneDistribution:
@@ -43,6 +43,9 @@ class LaneDistribution:
                 cars_per_lane_rounded[index] += 1
 
         return cars_per_lane_rounded
+
+
+LaneDistributionType = Type[LaneDistribution]
 
 
 class TriangleLaneDistribution(LaneDistribution):
@@ -93,6 +96,15 @@ class AllInLastLaneDistribution(LaneDistribution):
             lambda lane_index: 1 if lane_index == self.total_lanes - 1 else 0
         )
         return {i: p_i(i) for i in range(self.total_lanes)}
+
+
+lane_distributions = {
+    "Triangle / Linear": "triangle",
+    "Sum Squared": "sum_squared",
+    "Equal": "equal",
+    "All if first lane": "all_in_first_lane",
+    "All in last lane": "all_in_last_lane",
+}
 
 
 def lane_distribution_factory(total_lanes: int, lane_distribution_type: str) -> LaneDistribution:

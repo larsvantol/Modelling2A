@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from Behaviors.Behavior import Behavior
+from Behaviors.BehaviorBase import Behavior
 from Behaviors.LaneChanging import (
     calculate_save_distance_n_seconds_rule,
     is_outside_n_seconds_rule,
@@ -17,18 +17,31 @@ from Vehicles.Vehicle import Vehicle
 class GippsBehavior(Behavior):
     """Implementation of the Gipps behavior model."""
 
+    @staticmethod
+    def standard_parameters() -> list[tuple[str, str, float, str]]:
+        """Return the standard parameters for the Gipps behavior model."""
+
+        return [
+            ("maximum_acceleration", "maximum_acceleration", 2, "m/s^2"),
+            ("maximum_deceleration", "maximum_deceleration", 4, "m/s^2"),
+            ("desired_velocity", "desired_velocity", 2, "s"),
+            ("apparent_reaction_time", "apparent_reaction_time", 2, "s"),
+            ("comfortable_distance", "comfortable_distance", 2, "m"),
+        ]
+
     def __init__(
         self,
         maximum_acceleration: float,
         maximum_deceleration: float,
         desired_velocity: float,
         apparent_reaction_time: float,
+        comfortable_distance: float,
     ) -> None:
         self.maximum_acceleration = maximum_acceleration
         self.maximum_deceleration = maximum_deceleration
         self.desired_velocity = desired_velocity
         self.apparent_reaction_time = apparent_reaction_time
-        self.comfortable_distance = 2  # m
+        self.comfortable_distance = comfortable_distance  # m
         self.initial_velocity_deviation = 0.5  # m/s
 
         self.velocities = (0, 0, 0)  # Acceleration, Desired Velocity, Safe Velocity
@@ -71,7 +84,7 @@ class GippsBehavior(Behavior):
         return
 
     def calculate_new_velocities(
-        self, vehicle: Vehicle, lead_vehicle: Vehicle, delta_t: float
+        self, vehicle: Vehicle, lead_vehicle: Vehicle | None, delta_t: float
     ) -> tuple[float, float, float]:
         """Calculate the new velocities for the vehicle."""
 

@@ -29,3 +29,8 @@ class Behavior(ABC):
     @abstractmethod
     def considers_lane_safe(self, vehicle: Vehicle, lane: Lane, delta_t: float) -> bool:
         """Return whether the lane is safe to change to."""
+
+    @staticmethod
+    @abstractmethod
+    def standard_parameters() -> list[tuple[str, str, float, str]]:
+        """Return the standard parameters for the behavior model."""

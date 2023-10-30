@@ -26,6 +26,11 @@ new_cars_factory: dict[str, Callable[[float, float], int]] = {
     "equal": uniform_new_cars,
 }
 
+spawn_process_types = {
+    "Poisson": "poisson",
+    "Uniform": "equal",
+}
+
 
 class VehicleSpawner:
     """A vehicle spawner spawner."""
