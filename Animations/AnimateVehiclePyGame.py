@@ -125,7 +125,7 @@ def show_animation():
     def draw_title() -> None:
         # This function draws the title of the animation
         text = pygame.font.SysFont("Arial", 20).render(
-            f"Simulation of {simulation_settings['road']['lanes']} lanes for {simulation_settings['simulation']['duration'] / 60:.0f} minutes with {simulation_settings['spawning']['cars_per_second']:.1f} cars per second.",
+            f"Simulation of {simulation_settings['road']['lanes']} lanes for {simulation_settings['simulation']['duration'] / 60:.0f} minutes with {simulation_settings['spawn']['cars_per_second']:.1f} cars per second.",
             True,
             black_color,
         )

@@ -10,7 +10,7 @@ from Analysis.AnalyseRoadRush import analyse_road_rush
 from Analysis.AnalyseTravelTimes import analyse_travel_times
 from Analysis.AnalyseVehicleData import analyse_vehicle_data
 from Animations.AnimateVehiclePyGame import show_animation
-from GUI.simulation_settings import show_simulation_settings
+from GUI.show_simulation_settings import show_simulation_settings
 from simulation import simulate
 
 
@@ -44,21 +44,21 @@ class MainApplication:
         simulation_button = Button(
             simulation_labelframe,
             text="Run Simulation",
-            command=self.button_press_map["run_simulation"],
+            command=partial(self.button_press, "run_simulation"),
         )
         simulation_button.pack(padx=10, pady=10)
 
         animation_button = Button(
             simulation_labelframe,
             text="Show Simulation",
-            command=self.button_press_map["show_animation"],
+            command=partial(self.button_press, "show_animation"),
         )
         animation_button.pack(padx=10, pady=10)
 
         project_settings_button = Button(
             simulation_labelframe,
             text="Show simulation Settings",
-            command=self.button_press_map["show_simulation_settings"],
+            command=partial(self.button_press, "show_simulation_settings"),
         )
         project_settings_button.pack(padx=10, pady=10)
 
@@ -68,21 +68,21 @@ class MainApplication:
         travel_times_button = Button(
             analysis_labelframe,
             text="Analyse Travel Times",
-            command=self.button_press_map["analyse_travel_times"],
+            command=partial(self.button_press, "analyse_travel_times"),
         )
         travel_times_button.pack(padx=10, pady=10)
 
         vehicle_data_button = Button(
             analysis_labelframe,
             text="Analyse Vehicle Data",
-            command=self.button_press_map["analyse_vehicle_data"],
+            command=partial(self.button_press, "analyse_vehicle_data"),
         )
         vehicle_data_button.pack(padx=10, pady=10)
 
         road_rush_button = Button(
             analysis_labelframe,
             text="Analyse Road Rush",
-            command=self.button_press_map["analyse_road_rush"],
+            command=partial(self.button_press, "analyse_road_rush"),
         )
         road_rush_button.pack(padx=10, pady=10)
 
@@ -104,7 +104,7 @@ class MainApplication:
         if not button_name in self.button_press_map:
             raise ValueError(f"Button {button_name} does not exist.")
 
-        self.root.withdraw()
+        self.root.destroy()
         try:
             self.button_press_map[button_name]()
         except (
@@ -112,7 +112,8 @@ class MainApplication:
         ) as e:  # because we don't want to crash the GUI
             messagebox.showerror(title="Error", message=str(e))  # type: ignore
             traceback.print_exc()
-        self.root.deiconify()
+        self.root = self.create_window("Traffic Simulation")
+        self.create_layout()
 
     def mainloop(self):
         """

@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
 from Analysis.DataCollector import DataCollector
 from Behaviors.Behaviors import behavior_options
-from GUI.set_spawning_gui import get_simulation_settings
+from GUI.set_simulation_settings_gui import get_simulation_settings
 from Road.Lane import Lane
 from Road.Road import Road
 from Spawning.LaneDistributions import (
@@ -30,6 +30,7 @@ from Vehicles.Vehicle import Vehicle
 
 def simulate():
     """Simulate the traffic."""
+    print("Getting simulation settings")
     (
         simulation_settings,
         road_settings,
@@ -37,6 +38,8 @@ def simulate():
         spawn_settings,
         vehicle_settings,
     ) = get_simulation_settings()
+
+    print("Storing simulation settings")
 
     simulation = {
         "name": {

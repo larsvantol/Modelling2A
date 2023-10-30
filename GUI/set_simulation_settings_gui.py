@@ -339,7 +339,10 @@ class SetSpawningGUI:
 
     def mainloop(self):
         """Run the mainloop."""
+        print("Starting mainloop")
         self.root.mainloop()
+        print("Done with mainloop")
+        return
 
     def edit_behavior(self, behavior_type: str):
         """Edit the behavior."""
@@ -366,24 +369,31 @@ class SetSpawningGUI:
             # Show error message and return
             messagebox.showerror(title="Error", message="Behavior not selected")  # type: ignore
             return
-        self.root.destroy()
         self.simulation_settings = (
             simulation_name.get().replace(" ", "_"),
             simulation_description.get(),
             simulation_duration.get(),
             simulation_delta_t.get(),
         )
+        print(self.simulation_settings)
         self.road_settings = (road_length.get(), total_lanes.get())
+        print(self.road_settings)
         self.lane_distribution = lane_distribution_type.get()
+        print(self.lane_distribution)
         self.spawn_settings = (
             spawn_process_types[spawner.get()],
             float(spawn_rate.get()),
         )
+        print(self.spawn_settings)
         self.vehicle_settings = (
             self.behavior_settings,
             (desired_velocity_mu.get(), desired_velocity_sigma.get()),
             vehicle_length.get(),
         )
+        print(self.vehicle_settings)
+        print("Destroying window")
+        self.root.destroy()
+        print("Window destroyed")
 
 
 class SetBehaviorGUI:
@@ -462,6 +472,7 @@ class SetBehaviorGUI:
     def mainloop(self):
         """Run the mainloop."""
         self.root.mainloop()
+        return
 
     def handle_button_press(self, parameters: dict[str, dict[str, tk.DoubleVar]]):
         """Handle a button press."""
@@ -490,8 +501,12 @@ def get_simulation_settings() -> (
 ):
     """Get the simulation settings using a GUI."""
 
+    print("Creating GUI")
+
     gui = SetSpawningGUI()
     gui.mainloop()
+
+    print("Done!")
 
     if gui.simulation_settings is None:
         raise ValueError("Lane distribution type not selected")

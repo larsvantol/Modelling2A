@@ -13,7 +13,7 @@ class DataCollector:
 
     def __init__(self, simulation_id: str):
         self.vehicle_data: list[tuple[float, int, int | None, float, float]] = []
-        self.travel_times: list[float] = []
+        self.travel_times: list[tuple[float, float]] = []
 
         self.car_data: dict[int, dict[str, Any]] = {}
 
@@ -107,7 +107,7 @@ class DataCollector:
         self.car_data[vehicle.id]["travel_time"] = (
             simulation_time - self.car_data[vehicle.id]["start_time"]
         )
-        self.travel_times.append(self.car_data[vehicle.id]["travel_time"])
+        self.travel_times.append((simulation_time, self.car_data[vehicle.id]["travel_time"]))
 
     def write_data(self):
         """Write the collected data to a file"""
@@ -120,7 +120,7 @@ class DataCollector:
         travel_time_file = os.path.join(self.path, "travel_times.csv")
         with open(travel_time_file, "a", encoding="utf-8") as f:
             for travel_time in self.travel_times:
-                f.write(f"{travel_time}\n")
+                f.write(",".join([str(data) for data in travel_time]) + "\n")
 
     def write_header(self) -> None:
         """Write the header of the data files"""
@@ -131,7 +131,7 @@ class DataCollector:
 
         travel_time_file = os.path.join(self.path, "travel_times.csv")
         with open(travel_time_file, "w", encoding="utf-8") as f:
-            f.write("Travel Times\n")
+            f.write("Time,Traveltime\n")
 
     def export_data(self):
         """Export the collected data to a file (e.g., CSV)"""
