@@ -109,10 +109,10 @@ def analyse_vehicle_data():
     ax4.set_xlabel("Time")
 
     # Show the legend
-    ax1.legend(loc="upper right", fancybox=True, framealpha=1, shadow=True, borderpad=1)
-    ax2.legend(loc="upper right", fancybox=True, framealpha=1, shadow=True, borderpad=1)
-    ax3.legend(loc="upper right", fancybox=True, framealpha=1, shadow=True, borderpad=1)
-    ax4.legend(loc="upper right", fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    # ax1.legend(loc="upper right", fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    # ax2.legend(loc="upper right", fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    # ax3.legend(loc="upper right", fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    # ax4.legend(loc="upper right", fancybox=True, framealpha=1, shadow=True, borderpad=1)
 
     # Tkinter to ask for a file name
     file = asksaveasfilename(

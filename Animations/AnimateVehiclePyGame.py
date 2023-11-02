@@ -31,6 +31,8 @@ def show_animation():
     if len(data) == 0:
         raise ValueError(f"Data {data} is empty.")
 
+    print("Data read.")
+
     ##################################
 
     # Initialize pygame
@@ -202,8 +204,11 @@ def show_animation():
     reverse = False
     speed = 1
 
+    print("Starting animation...")
+
     frame_num = 0
     while running:
+        print(f"Frame: {frame_num} / {len(frames)}", end="\r")
         # Handle events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

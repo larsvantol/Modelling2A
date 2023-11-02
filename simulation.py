@@ -93,7 +93,7 @@ def simulate():
             )  # Velocity can't be 0 or negative
 
             behavior_parameters = {
-                parameter: np.random.normal(value["mu"], value["sigma"])
+                parameter: max(np.random.normal(value["mu"], value["sigma"]), 0.01)
                 for parameter, value in simulation["vehicle"]["behavior"][1].items()
             }
             behavior_parameters["desired_velocity"] = desired_velocity

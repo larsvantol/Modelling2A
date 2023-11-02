@@ -124,7 +124,8 @@ def analyse_road_rush() -> None:
     plt.gca().set_xlim(left=0, right=time_steps.max())
     plt.xlabel("Time (s)")
     plt.legend(handles=handles, fancybox=True, framealpha=1, shadow=True, borderpad=1)
-    plt.title("Amount of cars per lane")
+    behavior = simulation_settings["vehicle"]["behavior"][0]
+    plt.title(f"Amount of cars per lane ({behavior})")
 
     # Tkinter to ask for a file name
     file = asksaveasfilename(
@@ -214,7 +215,8 @@ def analyse_road_rush() -> None:
     plt.gca().set_xlim(left=0, right=time_steps.max())
     plt.xlabel("Time (s)")
     plt.legend(handles=handles, fancybox=True, framealpha=1, shadow=True, borderpad=1)
-    plt.title("Average amount of cars per lane")
+    behavior = simulation_settings["vehicle"]["behavior"][0]
+    plt.title(f"Average amount of cars per lane ({behavior})")
     plt.savefig(
         file.replace(".png", "_average.png"),
         dpi=300,

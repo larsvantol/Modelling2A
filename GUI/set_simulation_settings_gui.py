@@ -387,7 +387,7 @@ class SetSpawningGUI:
         print(self.spawn_settings)
         self.vehicle_settings = (
             self.behavior_settings,
-            (desired_velocity_mu.get(), desired_velocity_sigma.get()),
+            (desired_velocity_mu.get() / 3.6, desired_velocity_sigma.get() / 3.6),
             vehicle_length.get(),
         )
         print(self.vehicle_settings)

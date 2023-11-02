@@ -125,7 +125,8 @@ def plot_travel_times_histogram(data, stats, project_folder, simulation_settings
     plt.gca().grid(which="minor", color="#CCCCCC", linestyle=":")
 
     # Plot title
-    plt.title("Travel times Gipps", fontsize=20)
+    behavior = simulation_settings["vehicle"]["behavior"][0]
+    plt.title(f"Travel times {behavior}", fontsize=20)
     plt.xlabel("Travel time (s)", fontsize=15)
     plt.ylabel("Probability density", fontsize=15)
 
@@ -225,7 +226,8 @@ def plot_travel_times_graph(data, stats, project_folder, simulation_settings):
     plt.gca().grid(which="minor", color="#CCCCCC", linestyle=":")
 
     # Plot title
-    plt.title("Travel times Gipps", fontsize=20)
+    behavior = simulation_settings["vehicle"]["behavior"][0]
+    plt.title(f"Travel times {behavior}", fontsize=20)
     plt.xlabel("Time (s)", fontsize=15)
     plt.ylabel("Travel Times (s)", fontsize=15)
 
@@ -330,7 +332,8 @@ def plot_travel_times_graph(data, stats, project_folder, simulation_settings):
     plt.gca().grid(which="minor", color="#CCCCCC", linestyle=":")
 
     # Plot title
-    plt.title("Travel times Gipps", fontsize=20)
+    behavior = simulation_settings["vehicle"]["behavior"][0]
+    plt.title(f"Travel times {behavior}", fontsize=20)
     plt.xlabel("Time (s)", fontsize=15)
     plt.ylabel("Travel Times (s)", fontsize=15)
 
@@ -494,8 +497,8 @@ def analyse_travel_times() -> None:
     print(data)
     stats = get_stats(data, simulation_settings)
     save_stats(project_folder, stats)
-    # plot_travel_times_histogram(data, stats, project_folder, simulation_settings)
-    # plot_travel_times_graph(data, stats, project_folder, simulation_settings)
+    plot_travel_times_histogram(data, stats, project_folder, simulation_settings)
+    plot_travel_times_graph(data, stats, project_folder, simulation_settings)
 
 
 if __name__ == "__main__":
