@@ -24,7 +24,6 @@ class GippsBehavior(Behavior):
         return [
             ("maximum_acceleration", "maximum_acceleration", 2, "m/s^2"),
             ("maximum_deceleration", "maximum_deceleration", 4, "m/s^2"),
-            ("desired_velocity", "desired_velocity", 2, "s"),
             ("apparent_reaction_time", "apparent_reaction_time", 2, "s"),
             ("comfortable_distance", "comfortable_distance", 2, "m"),
         ]

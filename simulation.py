@@ -28,45 +28,14 @@ from Spawning.Spawners import VehicleSpawner
 from Vehicles.Vehicle import Vehicle
 
 
-def simulate():
+def simulate(simulation=None):
     """Simulate the traffic."""
-    print("Getting simulation settings")
-    (
-        simulation_settings,
-        road_settings,
-        lane_distribution,
-        spawn_settings,
-        vehicle_settings,
-    ) = get_simulation_settings()
+    if simulation is None:
+        print("Getting simulation settings")
+        simulation = get_simulation_settings()
+        print(json.dumps(simulation, indent=4))
 
     print("Storing simulation settings")
-
-    simulation = {
-        "name": {
-            "id": simulation_settings[0],
-            "description": simulation_settings[1],
-        },
-        "road": {
-            "length": road_settings[0],
-            "lanes": road_settings[1],
-        },
-        "simulation": {
-            "time_step": simulation_settings[3],
-            "duration": simulation_settings[2],
-        },
-        "spawn": {
-            "process": spawn_settings[0],
-            "cars_per_second": spawn_settings[1],
-        },
-        "vehicle": {
-            "behavior": vehicle_settings[0],
-            "behavior_settings": vehicle_settings[1],
-            "length": vehicle_settings[2],
-        },
-        "lane_distribution": lane_distribution,
-    }
-
-    print(json.dumps(simulation, indent=4))
 
     datacollector = DataCollector(simulation["name"]["id"])
 
@@ -157,6 +126,8 @@ def simulate():
 
     # Add extra data to the data file
     data_collector.add_extra_data(simulation)
+
+    return data_collector.return_path()
 
 
 if __name__ == "__main__":

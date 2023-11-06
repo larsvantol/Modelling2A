@@ -146,3 +146,7 @@ class DataCollector:
         filename = os.path.join(self.path, "simulation_settings.json")
         with open(filename, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4)
+
+    def return_path(self) -> str:
+        """Return the path to the folder where the data is stored"""
+        return self.path

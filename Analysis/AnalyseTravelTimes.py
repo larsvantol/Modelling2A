@@ -5,6 +5,7 @@ A script to analyse the travel times of a simulation.
 import json
 import os
 from tkinter.filedialog import asksaveasfilename
+from typing import Any
 
 # pylint: disable=wrong-import-position
 if __name__ == "__main__":
@@ -25,7 +26,7 @@ from scipy.optimize import curve_fit
 from Analysis.OpenSimulation import open_simulation
 
 
-def plot_travel_times_histogram(data, stats, project_folder, simulation_settings):
+def plot_travel_times_histogram(data, stats, project_folder, simulation_settings, show, ask_save):
     """
     Plot the travel times of a simulation.
     """
@@ -81,9 +82,27 @@ def plot_travel_times_histogram(data, stats, project_folder, simulation_settings
     # Fit some distributions to the data
     x = np.linspace(0, stats["max_travel_time"], 1000)
 
-    # Fit the normal distribution to the histogram
-    p = st.norm.pdf(x, loc=stats["mean_travel_time"], scale=stats["std_dev"])
-    plt.plot(x, p, "r", lw=2, label="Fitted Normal Distribution")
+    # # Fit the normal distribution to the histogram
+    # p = st.norm.pdf(x, loc=stats["mean_travel_time"], scale=stats["std_dev"])
+    # plt.plot(x, p, "r", lw=2, label="Fitted Normal Distribution")
+
+    # Get the best fit distribution
+    best_fit = stats["goodness_of_fit"][stats["best_fit"]]
+    # H0: The data is distributed according to the best fit distribution
+    confidence = 0.95
+    # Reject H0 if p_value < 1 - confidence
+    if best_fit["p_value"] >= 1 - confidence:
+        # We cannot reject H0
+        dist = getattr(st, stats["best_fit"])
+        params = best_fit["parameters"]
+        p = dist.pdf(x, *params)
+        plt.plot(
+            x,
+            p,
+            "r",
+            lw=2,
+            label=f"Fitted {stats['best_fit'].capitalize()} Distribution (p={best_fit['p_value']:.2f})",
+        )
 
     # # Fit a poisson distribution to the data
     # p = poisson.pmf(x, stats["mean_travel_time"])
@@ -112,11 +131,11 @@ def plot_travel_times_histogram(data, stats, project_folder, simulation_settings
     # Configure the grid
     plt.grid(which="both", axis="both")
     # Change major ticks to show every 20.
-    plt.gca().xaxis.set_major_locator(MultipleLocator(5))
+    # plt.gca().xaxis.set_major_locator(MultipleLocator(5))
     # plt.gca().yaxis.set_major_locator(MultipleLocator(0.1))
 
     # Change minor ticks to show every 5. (20/4 = 5)
-    plt.gca().xaxis.set_minor_locator(MultipleLocator(1))
+    # plt.gca().xaxis.set_minor_locator(MultipleLocator(1))
     # plt.gca().yaxis.set_minor_locator(MultipleLocator(0.01))
 
     # Turn grid on for both major and minor ticks and style minor slightly
@@ -126,18 +145,21 @@ def plot_travel_times_histogram(data, stats, project_folder, simulation_settings
 
     # Plot title
     behavior = simulation_settings["vehicle"]["behavior"][0]
-    plt.title(f"Travel times {behavior}", fontsize=20)
+    plt.title(f"Travel times ({behavior})", fontsize=20)
     plt.xlabel("Travel time (s)", fontsize=15)
     plt.ylabel("Probability density", fontsize=15)
 
     # Tkinter to ask for a file name
-    file = asksaveasfilename(
-        title="Save vehicle data",
-        filetypes=[("PNG", "*.png")],
-        defaultextension=".png",
-        initialdir=project_folder,
-        initialfile="travel_times_histogram.png",
-    )
+    if ask_save:
+        file = asksaveasfilename(
+            title="Save vehicle data",
+            filetypes=[("PNG", "*.png")],
+            defaultextension=".png",
+            initialdir=project_folder,
+            initialfile="travel_times_histogram.png",
+        )
+    else:
+        file = os.path.join(project_folder, "travel_times_histogram.png")
     plt.savefig(
         file,
         dpi=300,
@@ -145,19 +167,20 @@ def plot_travel_times_histogram(data, stats, project_folder, simulation_settings
         bbox_inches="tight",
         transparent=False,
     )
-    plt.savefig(
-        file.replace(".png", "_transparent.png"),
-        dpi=300,
-        format="png",
-        bbox_inches="tight",
-        transparent=True,
-    )
+    # plt.savefig(
+    #     file.replace(".png", "_transparent.png"),
+    #     dpi=300,
+    #     format="png",
+    #     bbox_inches="tight",
+    #     transparent=True,
+    # )
 
     # Show the plot
-    plt.show()
+    if show:
+        plt.show()
 
 
-def plot_travel_times_graph(data, stats, project_folder, simulation_settings):
+def plot_travel_times_graph(data, stats, project_folder, simulation_settings, show, ask_save):
     """
     Plot the travel times of a simulation.
     """
@@ -227,18 +250,21 @@ def plot_travel_times_graph(data, stats, project_folder, simulation_settings):
 
     # Plot title
     behavior = simulation_settings["vehicle"]["behavior"][0]
-    plt.title(f"Travel times {behavior}", fontsize=20)
+    plt.title(f"Travel times ({behavior})", fontsize=20)
     plt.xlabel("Time (s)", fontsize=15)
     plt.ylabel("Travel Times (s)", fontsize=15)
 
     # Tkinter to ask for a file name
-    file = asksaveasfilename(
-        title="Save vehicle data",
-        filetypes=[("PNG", "*.png")],
-        defaultextension=".png",
-        initialdir=project_folder,
-        initialfile="travel_times_plot.png",
-    )
+    if ask_save:
+        file = asksaveasfilename(
+            title="Save vehicle data",
+            filetypes=[("PNG", "*.png")],
+            defaultextension=".png",
+            initialdir=project_folder,
+            initialfile="travel_times_plot.png",
+        )
+    else:
+        file = os.path.join(project_folder, "travel_times_plot.png")
     plt.savefig(
         file,
         dpi=300,
@@ -246,16 +272,17 @@ def plot_travel_times_graph(data, stats, project_folder, simulation_settings):
         bbox_inches="tight",
         transparent=False,
     )
-    plt.savefig(
-        file.replace(".png", "_transparent.png"),
-        dpi=300,
-        format="png",
-        bbox_inches="tight",
-        transparent=True,
-    )
+    # plt.savefig(
+    #     file.replace(".png", "_transparent.png"),
+    #     dpi=300,
+    #     format="png",
+    #     bbox_inches="tight",
+    #     transparent=True,
+    # )
 
     # Show the plot
-    plt.show()
+    if show:
+        plt.show()
 
     # Now do the same but average the data over 10 seconds
 
@@ -333,7 +360,7 @@ def plot_travel_times_graph(data, stats, project_folder, simulation_settings):
 
     # Plot title
     behavior = simulation_settings["vehicle"]["behavior"][0]
-    plt.title(f"Travel times {behavior}", fontsize=20)
+    plt.title(f"Travel times ({behavior})", fontsize=20)
     plt.xlabel("Time (s)", fontsize=15)
     plt.ylabel("Travel Times (s)", fontsize=15)
 
@@ -344,16 +371,17 @@ def plot_travel_times_graph(data, stats, project_folder, simulation_settings):
         bbox_inches="tight",
         transparent=False,
     )
-    plt.savefig(
-        file.replace(".png", "_average_transparent.png"),
-        dpi=300,
-        format="png",
-        bbox_inches="tight",
-        transparent=True,
-    )
+    # plt.savefig(
+    #     file.replace(".png", "_average_transparent.png"),
+    #     dpi=300,
+    #     format="png",
+    #     bbox_inches="tight",
+    #     transparent=True,
+    # )
 
     # Show the plot
-    plt.show()
+    if show:
+        plt.show()
 
 
 def get_stats(data, simulation_settings):
@@ -437,6 +465,7 @@ def run_kolmogorov_smirnov_test(data):
         "norm": [],
         "expon": [],
         "lognorm": [],
+        "chi2": [],
         "gamma": [],
         "beta": [],
         "uniform": [],
@@ -466,7 +495,11 @@ def run_kolmogorov_smirnov_test(data):
     return continuous_distributions, best_fit
 
 
-def analyse_travel_times() -> None:
+def analyse_travel_times(
+    show: bool,
+    ask_save: bool,
+    simulation: tuple[str, str, dict[str, Any]] | None = None,
+) -> None:
     """
     Analyse the travel times of a simulation.
     """
@@ -474,7 +507,12 @@ def analyse_travel_times() -> None:
 
     print("Opening simulation...")
 
-    path, project_folder, simulation_settings = open_simulation(preference_file="travel_times.csv")
+    if simulation is None:
+        path, project_folder, simulation_settings = open_simulation(
+            preference_file="travel_times.csv"
+        )
+    else:
+        path, project_folder, simulation_settings = simulation
 
     ##################################
 
@@ -497,9 +535,9 @@ def analyse_travel_times() -> None:
     print(data)
     stats = get_stats(data, simulation_settings)
     save_stats(project_folder, stats)
-    plot_travel_times_histogram(data, stats, project_folder, simulation_settings)
-    plot_travel_times_graph(data, stats, project_folder, simulation_settings)
+    plot_travel_times_histogram(data, stats, project_folder, simulation_settings, show, ask_save)
+    plot_travel_times_graph(data, stats, project_folder, simulation_settings, show, ask_save)
 
 
 if __name__ == "__main__":
-    analyse_travel_times()
+    analyse_travel_times(True)

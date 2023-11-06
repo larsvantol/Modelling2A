@@ -23,9 +23,9 @@ class MainApplication:
         self.button_press_map = {
             "run_simulation": simulate,
             "show_animation": show_animation,
-            "analyse_travel_times": analyse_travel_times,
-            "analyse_vehicle_data": analyse_vehicle_data,
-            "analyse_road_rush": analyse_road_rush,
+            "analyse_travel_times": partial(analyse_travel_times, True, True),
+            "analyse_vehicle_data": partial(analyse_vehicle_data, True),
+            "analyse_road_rush": partial(analyse_road_rush, True, True),
             "show_simulation_settings": partial(show_simulation_settings, None),
         }
 

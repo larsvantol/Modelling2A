@@ -3,7 +3,9 @@
 Analyse the data from the Road Rush simulation.
 """
 import colorsys
+import os
 from tkinter.filedialog import asksaveasfilename
+from typing import Any
 
 import matplotlib.colors as mc
 import matplotlib.pyplot as plt
@@ -31,7 +33,11 @@ def lighten_color(
     return colorsys.hls_to_rgb(c[0], 1 - amount * (1 - c[1]), c[2])
 
 
-def analyse_road_rush() -> None:
+def analyse_road_rush(
+    show: bool,
+    ask_save: bool,
+    simulation: tuple[str, str, dict[str, Any]] | None = None,
+) -> None:
     """
     Analyse the data from the Road Rush simulation.
     Plots the data in two graphs:
@@ -41,7 +47,12 @@ def analyse_road_rush() -> None:
     """
     print("Opening simulation...")
 
-    path, project_folder, simulation_settings = open_simulation(preference_file="vehicle_data.csv")
+    if simulation is None:
+        path, project_folder, simulation_settings = open_simulation(
+            preference_file="vehicle_data.csv",
+        )
+    else:
+        path, project_folder, simulation_settings = simulation
 
     ##################################
 
@@ -53,6 +64,8 @@ def analyse_road_rush() -> None:
     # Check if data is empty if so raise an error
     if len(data) == 0:
         raise ValueError(f"Data {data} is empty.")
+
+    print(data)
 
     ##################################
 
@@ -128,13 +141,16 @@ def analyse_road_rush() -> None:
     plt.title(f"Amount of cars per lane ({behavior})")
 
     # Tkinter to ask for a file name
-    file = asksaveasfilename(
-        title="Save vehicle data",
-        filetypes=[("PNG", "*.png")],
-        defaultextension=".png",
-        initialdir=project_folder,
-        initialfile="road_rush.png",
-    )
+    if ask_save:
+        file = asksaveasfilename(
+            title="Save vehicle data",
+            filetypes=[("PNG", "*.png")],
+            defaultextension=".png",
+            initialdir=project_folder,
+            initialfile="road_rush.png",
+        )
+    else:
+        file = os.path.join(project_folder, "road_rush.png")
     plt.savefig(
         file,
         dpi=300,
@@ -142,14 +158,15 @@ def analyse_road_rush() -> None:
         bbox_inches="tight",
         transparent=False,
     )
-    plt.savefig(
-        file.replace(".png", "_transparent.png"),
-        dpi=300,
-        format="png",
-        bbox_inches="tight",
-        transparent=True,
-    )
-    plt.show()
+    # plt.savefig(
+    #     file.replace(".png", "_transparent.png"),
+    #     dpi=300,
+    #     format="png",
+    #     bbox_inches="tight",
+    #     transparent=True,
+    # )
+    if show:
+        plt.show()
 
     ##################################
 
@@ -224,15 +241,16 @@ def analyse_road_rush() -> None:
         bbox_inches="tight",
         transparent=False,
     )
-    plt.savefig(
-        file.replace(".png", "_average_transparent.png"),
-        dpi=300,
-        format="png",
-        bbox_inches="tight",
-        transparent=True,
-    )
-    plt.show()
+    # plt.savefig(
+    #     file.replace(".png", "_average_transparent.png"),
+    #     dpi=300,
+    #     format="png",
+    #     bbox_inches="tight",
+    #     transparent=True,
+    # )
+    if show:
+        plt.show()
 
 
 if __name__ == "__main__":
-    analyse_road_rush()
+    analyse_road_rush(show=True, ask_save=True)
